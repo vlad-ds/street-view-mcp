@@ -242,6 +242,13 @@ create_html_page(
   - `server.py`: MCP server implementation
   - `street_view.py`: Core Street View API client
 
+## Important Notes
+
+- **Local Storage**: This tool saves all Street View images and HTML files locally in the `output/` directory
+- **No Automatic Cleanup**: There is no built-in mechanism to delete saved files
+- **Manual Cleanup**: You should periodically clean up the `output/` directory to manage disk space
+- **API Usage**: Each image request counts toward your Google Maps API quota and may incur charges
+
 ## Development
 
 ### Testing
