@@ -16,8 +16,8 @@ load_dotenv()
 # Get API key from environment variables
 API_KEY = os.getenv("API_KEY")
 
-# Output directory for saving images
-OUTPUT_DIR = Path("output")
+# Output directory for saving images (using absolute path to ensure it's in repo root)
+OUTPUT_DIR = Path.cwd() / "output"
 
 
 def get_street_view_image(
@@ -58,7 +58,7 @@ def get_street_view_image(
     """
     # If filename is provided, check if it exists in output directory
     if filename:
-        output_path = Path("output") / filename
+        output_path = OUTPUT_DIR / filename
         if output_path.exists():
             raise ValueError(f"File {output_path} already exists")
     

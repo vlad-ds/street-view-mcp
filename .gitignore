@@ -38,4 +38,6 @@ var/
 # Claude local settings
 **/.claude/settings.local.json
 
+# Generated content
 output/
+html/

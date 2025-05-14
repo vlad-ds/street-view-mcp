@@ -5,15 +5,16 @@ import os
 import sys
 import webbrowser
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any, Union
+from typing import Optional, Tuple, Dict, Any, Union, List
 from fastmcp import FastMCP, Image
 from PIL import Image as PILImage
 
 # Use absolute import instead of relative import
 from street_view_mcp.street_view import get_street_view_image, get_panorama_metadata
 
-# Output directory for saved images
-OUTPUT_DIR = Path("output")
+# Output directories (using absolute paths to ensure they're in repo root)
+OUTPUT_DIR = Path.cwd() / "output"
+HTML_DIR = Path.cwd() / "html"
 
 # Initialize the MCP server
 mcp = FastMCP("Street View MCP")
@@ -149,6 +150,64 @@ def open_image_locally(filename: str) -> Dict[str, str]:
     webbrowser.open(abs_path)
     
     return {"status": "success", "message": f"Opened {filename} in default application"}
+
+
+@mcp.tool()
+def create_html_page(html_elements: List[str], filename: str) -> Dict[str, str]:
+    """
+    Create an HTML page from a list of HTML elements and open it in the default browser.
+    
+    Args:
+        html_elements: List of HTML element strings to be combined
+        filename: Name of the HTML file to create (without directory path)
+        
+    Returns:
+        Dict: A status message indicating success or failure
+        
+    Raises:
+        ValueError: If the filename already exists or is invalid
+        
+    Note:
+        To include Street View images in your HTML, reference them with relative paths:
+        - For an image saved as "empire.jpg" in the output directory:
+          `<img src="..output/empire.jpg" alt="Empire State Building">`
+        - The path is relative to the repository root where both output/ and html/ directories are located
+        - Example usage:
+          ```
+          html_elements = [
+              "<h1>My Tour Guide</h1>",
+              "<p>Welcome to New York City!</p>",
+              "<img src='../output/empire.jpg' alt='Empire State Building'>",
+              "<p>The Empire State Building is an iconic landmark.</p>"
+          ]
+          ```
+    """
+    # Validate filename
+    if not filename.endswith('.html'):
+        filename += '.html'
+    
+    # Create full path
+    file_path = HTML_DIR / filename
+    
+    # Check if file already exists
+    if file_path.exists():
+        raise ValueError(f"File {file_path} already exists")
+    
+    # Ensure directory exists
+    HTML_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Combine HTML elements
+    html_content = ''.join(html_elements)
+    
+    # Write to file
+    with open(file_path, 'w') as f:
+        f.write(html_content)
+    
+    # Open in browser
+    abs_path = file_path.absolute().as_uri()
+    webbrowser.open(abs_path)
+    
+    return {"status": "success", "message": f"Created and opened {filename}"}
 
 
 def start_server(host: str = "127.0.0.1", port: int = 8000):
