@@ -153,13 +153,22 @@ def open_image_locally(filename: str) -> Dict[str, str]:
 
 
 @mcp.tool()
-def create_html_page(html_elements: List[str], filename: str) -> Dict[str, str]:
+def create_html_page(html_elements: List[str], filename: str, title: str = "Street View Tour") -> Dict[str, str]:
     """
-    Create an HTML page from a list of HTML elements and open it in the default browser.
+    Create an HTML page specifically for displaying Street View images with descriptive text.
+    
+    This tool is designed to compile multiple Street View images into a single viewable 
+    HTML document, creating a virtual tour or location showcase. The function automatically 
+    wraps your content in a complete HTML document with:
+    - DOCTYPE declaration
+    - HTML, head, and body tags
+    - Basic responsive styling optimized for displaying images
+    - Title from the parameter
     
     Args:
-        html_elements: List of HTML element strings to be combined
+        html_elements: List of content HTML elements (just the body content, no need for HTML structure)
         filename: Name of the HTML file to create (without directory path)
+        title: Title for the HTML page
         
     Returns:
         Dict: A status message indicating success or failure
@@ -168,19 +177,64 @@ def create_html_page(html_elements: List[str], filename: str) -> Dict[str, str]:
         ValueError: If the filename already exists or is invalid
         
     Note:
-        To include Street View images in your HTML, reference them with relative paths:
-        - For an image saved as "empire.jpg" in the output directory:
-          `<img src="..output/empire.jpg" alt="Empire State Building">`
-        - The path is relative to the repository root where both output/ and html/ directories are located
-        - Example usage:
-          ```
-          html_elements = [
-              "<h1>My Tour Guide</h1>",
-              "<p>Welcome to New York City!</p>",
-              "<img src='../output/empire.jpg' alt='Empire State Building'>",
-              "<p>The Empire State Building is an iconic landmark.</p>"
-          ]
-          ```
+        - You only need to provide the CONTENT elements (no need for html, head, body tags)
+        - IMPORTANT: When including Street View images, you MUST use the path "../output/":
+          `<img src="../output/empire.jpg" alt="Empire State Building">`
+        - The "../" prefix is REQUIRED because HTML files are in html/ directory while 
+          images are in output/ directory (both at the same level)
+          
+    Example usage:
+        ```
+        # Create a virtual Street View tour with multiple locations
+        html_elements = [
+            "<h1>New York City Landmarks Tour</h1>",
+            "<p>Explore famous landmarks through Street View images.</p>",
+            
+            "<h2>Empire State Building</h2>",
+            "<img src='../output/empire.jpg' alt='Empire State Building'>",
+            "<p class='location'>350 Fifth Avenue, New York, NY</p>",
+            "<p class='description'>This 102-story Art Deco skyscraper in Midtown Manhattan was completed in 1931.</p>",
+            
+            "<h2>Times Square</h2>",
+            "<img src='../output/timessquare.jpg' alt='Times Square'>",
+            "<p class='location'>Broadway & 7th Avenue, New York, NY</p>", 
+            "<p class='description'>Famous for its bright lights, Broadway theaters, and as the site of the annual New Year's Eve ball drop.</p>"
+        ]
+        ```
+        
+    HTML Boilerplate (automatically added):
+        ```
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>{title}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    color: #333;
+                }
+                img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                }
+                h1, h2, h3 {
+                    color: #2c3e50;
+                }
+            </style>
+        </head>
+        <body>
+            <!-- Your content elements are inserted here -->
+        </body>
+        </html>
+        ```
     """
     # Validate filename
     if not filename.endswith('.html'):
@@ -197,7 +251,50 @@ def create_html_page(html_elements: List[str], filename: str) -> Dict[str, str]:
     HTML_DIR.mkdir(parents=True, exist_ok=True)
     
     # Combine HTML elements
-    html_content = ''.join(html_elements)
+    content = '\n'.join(html_elements)
+    
+    # HTML template with format placeholder
+    html_template = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }}
+        img {{
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin: 20px 0;
+        }}
+        h1, h2, h3 {{
+            color: #2c3e50;
+        }}
+        .location {{
+            font-weight: bold;
+            margin-bottom: 5px;
+        }}
+        .description {{
+            margin-bottom: 30px;
+        }}
+    </style>
+</head>
+<body>
+{content}
+</body>
+</html>
+"""
+    
+    # Format the template with content and title
+    html_content = html_template.format(title=title, content=content)
     
     # Write to file
     with open(file_path, 'w') as f:
