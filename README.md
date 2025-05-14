@@ -2,6 +2,42 @@
 
 A Model-Client-Protocol (MCP) server for Google Street View API that enables AI models to fetch and display street view imagery and create virtual tours.
 
+## Using with Claude Desktop
+
+To use Street View MCP with Claude Desktop:
+
+1. Ensure you have `uv` installed: [UV Installation Guide](https://github.com/astral-sh/uv)
+2. Clone this repository:
+   ```bash
+   git clone https://github.com/vlad-ds/street-view-mcp.git
+   cd street-view-mcp
+   ```
+3. Install dependencies:
+   ```bash
+   uv pip install -e ".[dev]"
+   ```
+4. Get a Google Maps API key (instructions below)
+5. Add the following to your Claude Desktop `claude_desktop_config.json` file:
+
+```json
+"street_view": {
+  "command": "uv",
+  "args": [
+    "run",
+    "--directory",
+    "/path/to/street-view-mcp",  // Replace with your actual path
+    "mcp",
+    "run",
+    "src/street_view_mcp/server.py"
+  ],
+  "env": {
+    "API_KEY": "your_google_maps_api_key_here"  // Add your API key here
+  }
+}
+```
+
+After configuration, you can use Street View MCP in Claude Desktop simply by typing "/street_view".
+
 ## Overview
 
 Street View MCP provides a simple interface for AI models to:
@@ -15,28 +51,18 @@ Street View MCP provides a simple interface for AI models to:
 - Python 3.9+
 - Google Maps API key with Street View API enabled
 - `fastmcp` package
+- `uv` package manager (recommended)
 
 ## Installation
 
-### From PyPI
-```bash
-pip install street-view-mcp
-```
-
-### From Source
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/street-view-mcp.git
+git clone https://github.com/vlad-ds/street-view-mcp.git
 cd street-view-mcp
 
-# Create and activate a virtual environment
-# Option 1: Using uv (recommended)
+# Create and activate a virtual environment with uv (recommended)
 uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Option 2: Using standard venv
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 uv pip install -e ".[dev]"
