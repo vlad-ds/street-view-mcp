@@ -16,6 +16,9 @@ load_dotenv()
 # Get API key from environment variables
 API_KEY = os.getenv("API_KEY")
 
+# Output directory for saving images
+OUTPUT_DIR = Path("output")
+
 
 def get_street_view_image(
     location: Optional[str] = None,
@@ -28,6 +31,7 @@ def get_street_view_image(
     radius: int = 50,
     source: str = "default",
     return_error_code: bool = True,
+    filename: Optional[str] = None,
 ):
     """
     Fetch a Street View image using various location specifiers.
@@ -43,14 +47,21 @@ def get_street_view_image(
         radius (int): Search radius in meters (when using location or lat_lng)
         source (str): Limits Street View searches to selected sources (default, outdoor)
         return_error_code (bool): Whether to return error codes instead of generic images
+        filename (str, optional): If provided, save the image to this filename in the output directory
         
     Returns:
         PIL.Image: The Street View image
         
     Raises:
-        ValueError: If no location method is provided or multiple are provided
+        ValueError: If no location method is provided or multiple are provided, or if filename already exists
         Exception: If the API request fails
     """
+    # If filename is provided, check if it exists in output directory
+    if filename:
+        output_path = Path("output") / filename
+        if output_path.exists():
+            raise ValueError(f"File {output_path} already exists")
+    
     # Validate input: exactly one location method must be provided
     location_methods = sum(1 for m in [location, lat_lng, pano_id] if m is not None)
     if location_methods == 0:
@@ -86,7 +97,15 @@ def get_street_view_image(
     
     if response.status_code == 200:
         if response.headers.get('content-type', '').startswith('image/'):
-            return Image.open(BytesIO(response.content))
+            image = Image.open(BytesIO(response.content))
+            
+            # Save to file if filename is provided
+            if filename:
+                # Ensure output directory exists
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                image.save(output_path)
+                
+            return image
         else:
             raise Exception("Received non-image response from API")
     else:
